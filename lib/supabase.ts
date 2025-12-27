@@ -50,12 +50,16 @@ export async function signUp(email: string, password: string, fullName: string) 
   if (error) throw error
   
   if (data.user) {
+    // Use upsert to handle case where profile already exists
     const { error: profileError } = await supabase
       .from('profiles')
-      .insert({
+      .upsert({
         id: data.user.id,
         email: data.user.email!,
         full_name: fullName,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'id'
       })
     
     if (profileError) throw profileError
